@@ -1,0 +1,42 @@
+# Disposable test backend. There is no frontend, exporter, plugin, or browser.
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: penpot
+      POSTGRES_USER: penpot
+      POSTGRES_PASSWORD: integration-only
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U penpot"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    tmpfs:
+      - /var/lib/postgresql/data
+  redis:
+    image: valkey/valkey:8-alpine
+    healthcheck:
+      test: [CMD, valkey-cli, ping]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  backend:
+    image: penpotapp/backend:2.18.0
+    ports:
+      - "127.0.0.1:19061:6060"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PENPOT_PUBLIC_URI: http://localhost:19061
+      PENPOT_SECRET_KEY: disposable-headless-mcp-integration-test-only
+      PENPOT_FLAGS: enable-registration enable-login-with-password disable-email-verification disable-secure-session-cookies enable-access-tokens disable-telemetry
+      PENPOT_DATABASE_URI: postgresql://postgres/penpot
+      PENPOT_DATABASE_USERNAME: penpot
+      PENPOT_DATABASE_PASSWORD: integration-only
+      PENPOT_REDIS_URI: redis://redis/0
+      PENPOT_OBJECTS_STORAGE_BACKEND: fs
+      PENPOT_OBJECTS_STORAGE_FS_DIRECTORY: /opt/data/assets
+      PENPOT_TELEMETRY_ENABLED: "false"
