@@ -1,0 +1,39 @@
+{
+  "name": "penpot-headless-mcp",
+  "version": "0.1.0",
+  "description": "A browser-free MCP server for Penpot's backend API",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rafazafar/penpot-headless-mcp.git"
+  },
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "penpot-headless-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepack": "npm run build",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "tsx --test test/*.test.ts",
+    "test:integration": "npm run build && node scripts/integration.mjs",
+    "check": "tsc --noEmit && npm test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.31.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
