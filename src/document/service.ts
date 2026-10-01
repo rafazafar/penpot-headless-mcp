@@ -181,6 +181,12 @@ export class Documents {
         for (const child of (shape.shapes ?? []) as string[]) if (!removing.has(child)) { removing.add(child); collect(child); }
       };
       ids.forEach(collect);
+      for (const id of removing) {
+        const parentId = String(page.objects[id].parentId);
+        if (!removing.has(parentId) && page.objects[parentId]?.type !== "frame") {
+          throw new PenpotError("unsupported_geometry", "Deleting children from a surviving group requires group bounds calculation.");
+        }
+      }
       // Delete descendants first. This also makes the outcome independent of backend cascade details.
       const ordered: string[] = [];
       const visited = new Set<string>();

@@ -98,7 +98,7 @@ export function createServer(client: PenpotClient, readOnly = false): McpServer 
   tool("update_shapes", "Update names, styles, text, or simple unrotated geometry in one transaction. Component instances and automatic layouts are rejected. Read shapes first.",
     { ...writeTarget, pageId, patches: z.array(shapePatch).min(1).max(100) }, false,
     args => documents.updateShapes(args, args.patches));
-  tool("delete_shapes", "Delete shapes and their descendants. Component instances and automatic layouts are rejected.",
+  tool("delete_shapes", "Delete shapes and their descendants. Component instances, automatic layouts, and child deletions that leave a surviving group are rejected.",
     { ...writeTarget, pageId, shapeIds: z.array(uuid).min(1).max(100) }, false,
     args => documents.deleteShapes(args, args.shapeIds), true);
   return server;

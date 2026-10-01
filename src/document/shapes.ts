@@ -22,6 +22,9 @@ export const shapeInput = z.object({
   fontSize: z.number().min(1).max(1000).optional(),
 }).strict().refine(input => (input.fontFamily === undefined) === (input.fontId === undefined), {
   message: "Supply fontFamily and fontId together, or omit both for the default font.",
+}).refine(input => input.type === "text" ||
+  [input.text, input.fontFamily, input.fontId, input.fontSize].every(value => value === undefined), {
+  message: "Text and font fields are supported only for text shapes.",
 });
 export type ShapeInput = z.infer<typeof shapeInput>;
 

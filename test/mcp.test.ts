@@ -48,5 +48,15 @@ test("invalid tool input is rejected before an HTTP request", async () => {
       assert.equal(invalidFont.isError, true);
       assert.equal(requests, 0);
     }
+    for (const type of ["rect", "circle", "frame"]) {
+      for (const fields of [{ text: "Hello" }, { text: "" }, { fontFamily: "Inter", fontId: "inter" }, { fontSize: 16 }]) {
+        const invalidText = await client.callTool({ name: "create_shapes", arguments: {
+          fileId: randomUUID(), pageId: randomUUID(), expectedRevision: 0, expectedVersion: 0,
+          shapes: [{ type, name: "Shape", x: 0, y: 0, width: 100, height: 50, ...fields }],
+        } });
+        assert.equal(invalidText.isError, true);
+        assert.equal(requests, 0);
+      }
+    }
   } finally { await client.close(); await server.close(); }
 });
