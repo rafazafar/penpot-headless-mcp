@@ -54,3 +54,30 @@ test("configuration rejects absent tokens, invalid timeouts, and credential URLs
     assert.throws(() => new PenpotClient({ url, token: "x" }));
   }
 });
+
+test("remote HTTP is rejected before a token can be sent", () => {
+  let requests = 0;
+  for (const url of ["http://penpot.example.com", "http://192.168.1.10", "http://[2001:db8::1]",
+    "http://localhost.example.com", "http://127.0.0.1.example.com", "http://128.0.0.1", "HTTP://EXAMPLE.COM"]) {
+    assert.throws(() => new PenpotClient({ url, token: "secret", fetch: async () => {
+      requests++; return Response.json({});
+    } }), /HTTPS/);
+  }
+  assert.equal(requests, 0);
+});
+
+test("HTTPS and local HTTP still send authenticated RPC requests", async () => {
+  for (const url of ["https://penpot.example.com", "http://localhost:19061", "http://127.0.0.1:19061",
+    "http://[::1]:19061", "http://127.1:19061", "http://[0:0:0:0:0:0:0:1]:19061",
+    "http://127.0.0.2:19061", "http://127.255.255.254:19061", "http://0x7f000002:19061", "http://2130706434:19061"]) {
+    let requests = 0;
+    const client = new PenpotClient({ url, token: "secret", fetch: async (target, init) => {
+      requests++;
+      assert.equal(new URL(String(target)).origin, new URL(url).origin);
+      assert.equal(new Headers(init?.headers).get("authorization"), "Token secret");
+      return Response.json({ id: "profile" });
+    } });
+    assert.deepEqual(await client.rpc("get-profile"), { id: "profile" });
+    assert.equal(requests, 1);
+  }
+});

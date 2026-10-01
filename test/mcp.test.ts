@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createServer } from "../src/mcp/server.js";
@@ -39,5 +40,13 @@ test("invalid tool input is rejected before an HTTP request", async () => {
     const result = await client.callTool({ name: "get_file", arguments: { fileId: "not-a-uuid" } });
     assert.equal(result.isError, true);
     assert.equal(requests, 0);
+    for (const font of [{ fontFamily: "Inter" }, { fontId: "inter" }]) {
+      const invalidFont = await client.callTool({ name: "create_shapes", arguments: {
+        fileId: randomUUID(), pageId: randomUUID(), expectedRevision: 0, expectedVersion: 0,
+        shapes: [{ type: "text", name: "Title", text: "Hello", x: 0, y: 0, width: 100, height: 50, ...font }],
+      } });
+      assert.equal(invalidFont.isError, true);
+      assert.equal(requests, 0);
+    }
   } finally { await client.close(); await server.close(); }
 });

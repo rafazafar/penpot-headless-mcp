@@ -17,10 +17,12 @@ export const shapeInput = z.object({
   opacity: z.number().min(0).max(1).optional(),
   radius: z.number().min(0).max(1e6).optional(),
   text: z.string().max(100_000).optional(),
-  fontFamily: z.string().max(200).optional(),
-  fontId: z.string().max(200).optional(),
+  fontFamily: z.string().max(200).optional().describe("Supply fontFamily and fontId together, or omit both for the default font."),
+  fontId: z.string().max(200).optional().describe("Supply with fontFamily to select the same font."),
   fontSize: z.number().min(1).max(1000).optional(),
-}).strict();
+}).strict().refine(input => (input.fontFamily === undefined) === (input.fontId === undefined), {
+  message: "Supply fontFamily and fontId together, or omit both for the default font.",
+});
 export type ShapeInput = z.infer<typeof shapeInput>;
 
 export const shapePatch = z.object({

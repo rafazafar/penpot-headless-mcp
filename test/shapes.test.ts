@@ -31,6 +31,22 @@ test("component and layout restrictions include ancestors", () => {
   assert.throws(() => assertEditable(child, { [ROOT_ID]: root, [String(parent.id)]: layout }), /layout/i);
 });
 
+test("text fonts require both family and ID or use the default pair", () => {
+  const input = { type: "text", name: "Title", text: "Hello", x: 0, y: 0, width: 100, height: 50 };
+  for (const font of [{ fontFamily: "Inter" }, { fontId: "inter" }]) {
+    assert.equal(shapeInput.safeParse({ ...input, ...font }).success, false);
+  }
+  for (const font of [{}, { fontFamily: "Inter", fontId: "inter" }]) {
+    const shape = makeShape(shapeInput.parse({ ...input, ...font }), root);
+    const content = shape.content as any;
+    const paragraph = content.children[0].children[0];
+    for (const node of [paragraph, paragraph.children[0]]) {
+      assert.equal(node.fontFamily, font.fontFamily ?? "sourcesanspro");
+      assert.equal(node.fontId, font.fontId ?? "sourcesanspro");
+    }
+  }
+});
+
 test("geometry changes reject rotated shapes and populated frames", () => {
   const shape = rectangle(), patch = { id: String(shape.id), width: 50 };
   assert.throws(() => patchShape({ ...shape, rotation: 90 }, patch), /unrotated/);

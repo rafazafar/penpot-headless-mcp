@@ -36,6 +36,10 @@ export class PenpotClient {
         this.url.search || this.url.hash) {
       throw new Error("PENPOT_URL must be an HTTP(S) instance URL without credentials, query, or fragment.");
     }
+    const loopback = ["localhost", "[::1]"].includes(this.url.hostname) || /^127(?:\.\d{1,3}){3}$/.test(this.url.hostname);
+    if (this.url.protocol === "http:" && !loopback) {
+      throw new Error("PENPOT_URL must use HTTPS for non-loopback hosts.");
+    }
     this.url.pathname = this.url.pathname.replace(/\/$/, "") + "/";
     if (!options.token.trim() || /[\r\n]/.test(options.token)) throw new Error("PENPOT_ACCESS_TOKEN is required.");
     this.token = options.token;
